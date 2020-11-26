@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Document</title>
+	<style media="screen">
+		html, body{
+			width: 100%;
+			height: 100%;
+			margin: 0;
+		}
+	</style>
+  </head>
+  <body>
+    <div id="container"></div>
+
+		<script src="./build/three.js"></script>
+		<script  type="module">
+
+import { OrbitControls } from 'https://unpkg.com/three@0.123.0/examples/jsm/controls/OrbitControls.js';
+
+let container;
+let sceneWidth;
+let sceneHeight;
+let scene;
+let renderer;
+let camara;
+let controls;
+let cube;
+
+init();
+
+function init() {
+  createScene();
+  update();
+}
+
+ 
+function createScene() {
+  sceneWidth = window.innerWidth;
+  sceneHeight = window.innerHeight;
+
+  // Escena
+  scene = new THREE.Scene();
+	let skybox = new THREE.CubeTextureLoader().load(
+		['./assets/skybox/skybox_right.png', // izquierda
+		'./assets/skybox/skybox_left.png', // Arriba
+		'./assets/skybox/skybox_up.png', // Abajo
+		'./assets/skybox/skybox_down.png', // Atras
+		'./assets/skybox/skybox_back.png', // fondo
+		'./assets/skybox/skybox_front.png' // frontal
+		]
+
+	)
+
+  scene.background = skybox
+
+  // Render
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(sceneWidth, sceneHeight);
+
+  // Canvas
+
+  container = document.getElementById("container");
+	container.appendChild(renderer.domElement);
+	
+	// Camara
+	camara = new THREE.PerspectiveCamera(45, sceneWidth / sceneHeight, 1, 1000)
+	camara.position.set(0, 50, 500);
+
+	// Luces 
+	let light = new THREE.DirectionalLight(0xffffff);
+	light.position.set( 1, 0, 1 );
+	scene.add(light)
+
+	let hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.5)
+	hemi.position.set(0, 0, .5);
+	scene.add(hemi)
+
+	//controls
+	controls = new OrbitControls(camara, renderer.domElement);
+	controls.update();
+
+	// crear sol
+	var cubeGeo = new THREE.IcosahedronGeometry(100, 1);
+	cubeGeo.computeFlatVertexNormals();
+	var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xee1122});
+	cube = new THREE.Mesh(cubeGeo, cubeMaterial);
+	cube.position.z -= 500;
+	scene.add(cube);
+	createPlane()
+}
+
+function createPlane(){
+
+	let group = new THREE.Group()
+	const planeBlack = new THREE.PlaneGeometry(1200, 1200, 1, 1)
+	const planeGeo = new THREE.PlaneGeometry(1000, 1000, 32, 32)
+	planeBlack.rotateX(-Math.PI/2);
+	planeGeo.rotateX(-Math.PI/2);
+	var vertices = planeGeo.vertices;
+
+	for(let i = 0; i < vertices.length; i++ ){
+		vertices[i].y = (Math.random() > 0.9) ? Math.random()*100: 0;
+	}
+
+	planeGeo.faces.forEach((value) => {
+		const i = planeGeo.vertices[ value.a ];
+		const j = planeGeo.vertices[ value.b ];
+		const k = planeGeo.vertices[ value.c ];
+
+		const maximo = Math.max(i.y, j.y , k.y);
+		if(maximo > 1) return value.color.set( 0x00ccaf );
+		value.color.set(0xff0000);
+
+	});
+
+	planeGeo.verticesNeedUpdate = true;
+	planeGeo.colorsNeedUpdate = true;
+
+	const material = new THREE.MeshBasicMaterial({vertexColors: THREE.VertexColors, wireframe: true})
+	const material2 = new THREE.MeshBasicMaterial({color: 0x000000})
+
+	let mesh = new THREE.Mesh(planeGeo, material)
+	let mesh2 = new THREE.Mesh(planeBlack, material2)
+
+	group.add(mesh2)
+	group.add(mesh)
+	scene.add(group)
+}
+
+function update() {
+	requestAnimationFrame(update);
+	render();
+}
+
+function render() {
+
+	controls.update();
+	camara.position.z -= 0.1;
+	camara.position.x += Math.cos((Math.sin(10/2)))
+//	camara.position.y -= Math.sin(Math.cos(10))
+	camara.lookAt( cube.position )
+	renderer.render(scene, camara)
+}
+
+		</script>
+  </body>
+</html>

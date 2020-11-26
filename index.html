@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="container"></div>
+
+		<script src="./build/three.js"></script>
+		<script  type="module">
+
+import { OrbitControls } from 'https://unpkg.com/three@0.123.0/examples/jsm/controls/OrbitControls.js';
+
+let container;
+let sceneWidth;
+let sceneHeight;
+let scene;
+let renderer;
+let camara;
+let controls;
+let cube;
+
+init();
+
+function init() {
+  createScene();
+  update();
+}
+
+ 
+function createScene() {
+  sceneWidth = window.innerWidth;
+  sceneHeight = window.innerHeight;
+
+  // Escena
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+
+  // Render
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(sceneWidth, sceneHeight);
+
+  // Canvas
+
+  container = document.getElementById("container");
+	container.appendChild(renderer.domElement);
+	
+	// Camara
+	camara = new THREE.PerspectiveCamera(60, sceneWidth / sceneHeight, 1, 1000)
+	camara.position.set(0, 0, 100);
+
+	// Luces 
+	let light = new THREE.DirectionalLight(0xffffff);
+	light.position.set( 1, 0, 1 );
+	scene.add(light)
+
+	let hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.5)
+	hemi.position.set(0, 0, .5);
+	scene.add(hemi)
+
+	controls = new OrbitControls(camara, renderer.domElement);
+	controls.update();
+
+	// Crear Cubo
+	var cubeGeo = new THREE.BoxGeometry(10, 10, 10);
+	var cubeMaterial = new THREE.MeshPhongMaterial({color: '0xee1122'});
+	cube = new THREE.Mesh(cubeGeo, cubeMaterial)
+	scene.add(cube);
+}
+
+function update() {
+	requestAnimationFrame(update);
+	render();
+}
+
+function render() {
+
+	controls.update();
+	cube.rotation.y += 0.01
+	cube.rotation.x += 0.1
+	cube.rotation.z += 0.1
+	renderer.render(scene, camara)
+}
+
+		</script>
+  </body>
+</html>
